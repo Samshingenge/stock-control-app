@@ -1,0 +1,30 @@
+import { Route, Routes } from 'react-router-dom'
+
+import Layout from './components/Layout'
+import Credit from './pages/Credit'
+import Dashboard from './pages/Dashboard'
+import Employees from './pages/Employees'
+import Inventory from './pages/Inventory'
+import Purchases from './pages/Purchases'
+import Reports from './pages/Reports'
+import Sales from './pages/Sales'
+import Settings from './pages/Settings'
+import Suppliers from './pages/Suppliers'
+
+export default function App() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/purchases" element={<Purchases />} />
+        <Route path="/sales" element={<Sales />} />
+        <Route path="/credit" element={<Credit />} />
+        <Route path="/employees" element={<Employees />} />
+        <Route path="/suppliers" element={<Suppliers />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Layout>
+  )
+}
