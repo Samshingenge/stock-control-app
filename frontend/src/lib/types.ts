@@ -36,6 +36,8 @@ export type Employee = {
   phone?: string | null
 }
 
+export type EmployeeUpdate = Partial<Pick<Employee, 'name' | 'phone'>>
+
 export type Purchase = {
   id: number
   supplier_id: number

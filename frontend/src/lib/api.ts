@@ -125,3 +125,9 @@ export const getEmployees = () =>
 
 export const createEmployee = (payload: EmployeeCreate) =>
   api.post<Employee>('/employees/', payload).then((r) => r.data)
+
+export const updateEmployee = (id: number, payload: Partial<Pick<Employee, 'name' | 'phone'>>) =>
+    api.patch<Employee>(`/employees/${id}`, payload).then((r) => r.data)
+  
+  export const deleteEmployee = (id: number) =>
+    api.delete<void>(`/employees/${id}`).then((r) => r.data)

@@ -58,6 +58,10 @@ class EmployeeCreate(BaseModel):
     name: str
     phone: Optional[str] = None
 
+class EmployeeUpdate(BaseModel):
+   name: Optional[str] = None
+   phone: Optional[str] = None
+
 
 class EmployeeOut(BaseModel):
     id: int
