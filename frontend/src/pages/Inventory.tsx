@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getProducts,
@@ -17,7 +17,7 @@ const normalizeSku = (raw: string) =>
     .replace(/[^A-Za-z0-9-]/g, '') // safe chars
     .toUpperCase()
 
-export default function Inventory() {
+export default function Inventory(): JSX.Element {
   const qc = useQueryClient()
 
   // -----------------------------
@@ -70,7 +70,7 @@ export default function Inventory() {
     setEditing(p)
     setEditDraft({
       name: p.name,
-      sku: p.sku, // make SKU editable
+      sku: p.sku, // SKU editable
       unit: p.unit,
       price: p.price,
       cost_price: p.cost_price,
@@ -109,12 +109,26 @@ export default function Inventory() {
   })
 
   // -----------------------------
-  // Derived helpers
+  // Low stock helpers (low if stock_qty <= reorder_level)
   // -----------------------------
   const lowStockIds = useMemo(
     () => new Set(products.filter(p => p.stock_qty <= p.reorder_level).map(p => p.id)),
     [products],
   )
+
+  // Toggle + visible list
+  const [showLowOnly, setShowLowOnly] = useState(false)
+
+  const visibleProducts = useMemo(() => {
+    const base = showLowOnly ? products.filter(p => lowStockIds.has(p.id)) : products
+    // Optional: bubble low stock to the top, then alpha by name
+    return [...base].sort((a, b) => {
+      const alow = lowStockIds.has(a.id) ? 1 : 0
+      const blow = lowStockIds.has(b.id) ? 1 : 0
+      if (blow - alow !== 0) return blow - alow
+      return a.name.localeCompare(b.name)
+    })
+  }, [products, showLowOnly, lowStockIds])
 
   // -----------------------------
   // Handlers
@@ -249,7 +263,7 @@ export default function Inventory() {
               value={editDraft.name ?? ''}
               onChange={(v) => setEditDraft((s) => ({ ...s, name: v }))}
             />
-            {/* 🔧 SKU is now editable */}
+            {/* 🔧 SKU is editable */}
             <Input
               label="SKU"
               value={editDraft.sku ?? ''}
@@ -326,7 +340,18 @@ export default function Inventory() {
 
       <section className="bg-white rounded-2xl shadow">
         <div className="p-4 md:p-6">
-          <h2 className="text-xl font-semibold mb-4">Products</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Products</h2>
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showLowOnly}
+                onChange={(e) => setShowLowOnly(e.target.checked)}
+                className="accent-black"
+              />
+              <span>Show only low stock</span>
+            </label>
+          </div>
 
           {isLoading && <div>Loading…</div>}
           {isError && (
@@ -351,7 +376,7 @@ export default function Inventory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {visibleProducts.map((p) => (
                     <tr key={p.id} className="border-t">
                       <Td>{p.name}</Td>
                       <Td>{p.sku}</Td>

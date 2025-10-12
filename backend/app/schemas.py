@@ -17,6 +17,7 @@ class ProductCreate(BaseModel):
 
 
 class ProductUpdate(BaseModel):
+    sku: Optional[str] = None
     name: Optional[str] = None
     unit: Optional[str] = None
     price: Optional[float] = None

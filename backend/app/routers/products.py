@@ -1,12 +1,12 @@
 # app/routers/products.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select, func
+from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 
 from ..deps import get_db
 from .. import schemas
-from ..models import Product, SaleItem, PurchaseItem
+from ..models import Product
 from app.db import SessionDep
-from app.models import Product
 from app.schemas import ProductOut, ProductUpdate
 
 router = APIRouter(prefix="/products", tags=["products"])

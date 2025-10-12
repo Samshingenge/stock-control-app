@@ -1,9 +1,7 @@
 from typing import List
-
 from sqlmodel import Session, select
-
-from sqlalchemy import select
 from ..models import Product, PurchaseItem, SaleItem
+
 
 def delete_product(db: Session, pid: int) -> bool:
     prod = db.get(Product, pid)
