@@ -5,6 +5,7 @@ import type {
   CreditSummary,
   Supplier,
   Purchase,
+  EmployeeUpdate,
 } from './types'
 
 // -------------------------------
@@ -43,6 +44,7 @@ export type PurchaseCreate = {
 }
 
 export type SaleItemIn = { product_id: number; qty: number; unit_price: number }
+
 export type SaleCreate = {
   employee_id?: number
   payment_method: 'cash' | 'card' | 'credit'
@@ -51,11 +53,7 @@ export type SaleCreate = {
 }
 
 // Employees (simple local typing to avoid coupling)
-export type Employee = {
-  id: number
-  name: string
-  phone?: string | null
-}
+export type Employee = { id: number; name: string; phone?: string | null }
 export type EmployeeCreate = { name: string; phone?: string }
 
 // -------------------------------
@@ -95,9 +93,7 @@ export const createSaleCredit = (payload: SaleCreate) =>
   api.post<{ id: number; total: number }>('/sales/', payload).then((r) => r.data)
 
 export const addCreditPayment = (employeeId: number, amount: number) =>
-  api
-    .post(`/credits/${employeeId}/payments`, { amount })
-    .then((r) => r.data)
+  api.post(`/credits/${employeeId}/payments`, { amount }).then((r) => r.data)
 
 // -------------------------------
 // Suppliers
@@ -126,8 +122,8 @@ export const getEmployees = () =>
 export const createEmployee = (payload: EmployeeCreate) =>
   api.post<Employee>('/employees/', payload).then((r) => r.data)
 
-export const updateEmployee = (id: number, payload: Partial<Pick<Employee, 'name' | 'phone'>>) =>
-    api.patch<Employee>(`/employees/${id}`, payload).then((r) => r.data)
-  
-  export const deleteEmployee = (id: number) =>
-    api.delete<void>(`/employees/${id}`).then((r) => r.data)
+export const updateEmployee = (id: number, payload: EmployeeUpdate) =>
+  api.patch<Employee>(`/employees/${id}`, payload).then((r) => r.data)
+
+export const deleteEmployee = (id: number) =>
+  api.delete<void>(`/employees/${id}`).then((r) => r.data)

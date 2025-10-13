@@ -9,7 +9,7 @@ export type Product = {
   reorder_level: number
 }
 
-export type ProductUpdate = Partial<Omit<Product, 'id'>> // includes sku
+export type ProductUpdate = Partial<Omit<Product, 'id'>>
 
 export type DashboardSummary = {
   total_products: number
@@ -36,7 +36,7 @@ export type Employee = {
   phone?: string | null
 }
 
-export type EmployeeUpdate = Partial<Pick<Employee, 'name' | 'phone'>>
+export type EmployeeUpdate = Partial<Omit<Employee, 'id'>>
 
 export type Purchase = {
   id: number
