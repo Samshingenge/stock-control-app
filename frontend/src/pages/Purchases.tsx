@@ -100,14 +100,14 @@ export default function Purchases() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Purchases</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Record stock coming in from suppliers and track purchase history.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow p-4 grid gap-3 max-w-xl"
+        className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 grid gap-3 max-w-xl"
       >
         <h2 className="font-semibold text-lg">Record Purchase</h2>
         <label className="text-sm grid gap-1">
@@ -117,7 +117,7 @@ export default function Purchases() {
             onChange={(e) =>
               setSupplierId(e.target.value ? Number(e.target.value) : '')
             }
-            className="w-full border rounded-lg px-3 py-2 bg-white"
+            className="w-full border dark:border-zinc-600 rounded-lg px-3 py-2 bg-white dark:bg-zinc-700"
           >
             <option value="">Select supplier</option>
             {(suppliers || []).map((s) => (
@@ -134,7 +134,7 @@ export default function Purchases() {
             onChange={(e) =>
               setProductId(e.target.value ? Number(e.target.value) : '')
             }
-            className="w-full border rounded-lg px-3 py-2 bg-white"
+            className="w-full border dark:border-zinc-600 rounded-lg px-3 py-2 bg-white dark:bg-zinc-700"
           >
             <option value="">Select product</option>
             {(products || []).map((p) => (
@@ -152,7 +152,7 @@ export default function Purchases() {
             step={1}
             value={qty}
             onChange={(e) => setQty(Number(e.target.value))}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded-lg px-3 py-2"
           />
         </label>
         <label className="text-sm grid gap-1">
@@ -163,7 +163,7 @@ export default function Purchases() {
             step="0.01"
             value={unitCost}
             onChange={(e) => setUnitCost(Number(e.target.value))}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded-lg px-3 py-2"
           />
         </label>
         <button
@@ -174,17 +174,17 @@ export default function Purchases() {
           {isPending ? 'Saving...' : 'Save Purchase'}
         </button>
         {isSuccess && created && (
-          <div className="text-green-600 text-sm">
+          <div className="text-green-600 dark:text-green-400 text-sm">
             Purchase saved. Total N$ {created.total.toFixed?.(2) ?? created.total}
           </div>
         )}
         {suppliers?.length === 0 && (
-          <div className="text-yellow-600 text-sm">
+          <div className="text-yellow-600 dark:text-yellow-400 text-sm">
             Add a supplier before recording purchases.
           </div>
         )}
         {products?.length === 0 && (
-          <div className="text-yellow-600 text-sm">
+          <div className="text-yellow-600 dark:text-yellow-400 text-sm">
             Add a product before recording purchases.
           </div>
         )}
@@ -194,10 +194,10 @@ export default function Purchases() {
         <h2 className="font-semibold text-lg">Purchase History</h2>
         {purchasesLoading && <Loading />}
         {purchasesError && (
-          <div className="text-red-600">Unable to load purchases right now.</div>
+          <div className="text-red-600 dark:text-red-400">Unable to load purchases right now.</div>
         )}
         {!purchasesLoading && !purchasesError && rows.length === 0 && (
-          <div className="text-gray-600">
+          <div className="text-gray-600 dark:text-gray-400">
             No purchases recorded yet. Add one using the form above.
           </div>
         )}

@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FormEvent, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getEmployees,
   createEmployee,
@@ -7,48 +7,55 @@ import {
   addCreditPayment,
   updateEmployee,
   deleteEmployee,
-} from '../lib/api'
-import type { Employee } from '../lib/types'
-import Loading from '../components/Loading'
+} from "../lib/api";
+import type { Employee } from "../lib/types";
+import Loading from "../components/Loading";
 
-type Row = Employee & { balance: number }
+type Row = Employee & { balance: number; hasHistory: boolean };
 
 export default function Employees() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
 
   // Queries
   const {
     data: employees,
     isLoading: empLoading,
     isError: empError,
-  } = useQuery<Employee[]>({ queryKey: ['employees'], queryFn: getEmployees })
+  } = useQuery<Employee[]>({ queryKey: ["employees"], queryFn: getEmployees });
 
   const { data: credit } = useQuery<
     { employee_id: number; employee_name: string; balance: number }[]
   >({
-    queryKey: ['credit'],
+    queryKey: ["credit"],
     queryFn: getCreditSummary,
-  })
+  });
 
   // Balance lookup
   const balanceById = useMemo(() => {
-    const m = new Map<number, number>()
-    ;(credit || []).forEach((c) => m.set(c.employee_id, c.balance))
-    return m
-  }, [credit])
+    const m = new Map<number, number>();
+    (credit || []).forEach((c) => m.set(c.employee_id, c.balance));
+    return m;
+  }, [credit]);
+
+  const hasHistoryId = useMemo(() => {
+    const s = new Set<number>();
+    (credit || []).forEach((c) => s.add(c.employee_id));
+    return s;
+  }, [credit]);
 
   const rows: Row[] = useMemo(
     () =>
       (employees || []).map((e) => ({
         ...e,
         balance: balanceById.get(e.id) ?? 0,
+        hasHistory: hasHistoryId.has(e.id),
       })),
-    [employees, balanceById]
-  )
+    [employees, balanceById, hasHistoryId]
+  );
 
   // New employee form
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
 
   const addEmp = useMutation({
     mutationFn: () =>
@@ -57,95 +64,117 @@ export default function Employees() {
         phone: phone.trim() ? phone.trim() : undefined,
       }),
     onSuccess: () => {
-      setName('')
-      setPhone('')
-      qc.invalidateQueries({ queryKey: ['employees'] })
+      setName("");
+      setPhone("");
+      qc.invalidateQueries({ queryKey: ["employees"] });
     },
-  })
+  });
 
   const submitNew = (e: FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) return
-    addEmp.mutate()
-  }
+    e.preventDefault();
+    if (!name.trim()) return;
+    addEmp.mutate();
+  };
 
   // Inline payments
-  const [pay, setPay] = useState<Record<number, number>>({})
+  const [pay, setPay] = useState<Record<number, number>>({});
 
   const recordPay = useMutation({
     mutationFn: ({ id, amount }: { id: number; amount: number }) =>
       addCreditPayment(id, amount),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['credit'] })
+      qc.invalidateQueries({ queryKey: ["credit"] });
     },
-  })
+  });
 
   const setAmount = (id: number, val: number) =>
-    setPay((prev) => ({ ...prev, [id]: val }))
+    setPay((prev) => ({ ...prev, [id]: val }));
 
   // Inline edit state
-  const [edit, setEdit] = useState<Record<number, { name: string; phone: string }>>(
-    {}
-  )
+  const [edit, setEdit] = useState<
+    Record<number, { name: string; phone: string }>
+  >({});
 
   const startEdit = (e: Employee) =>
-    setEdit((prev) => ({ ...prev, [e.id]: { name: e.name, phone: e.phone || '' } }))
+    setEdit((prev) => ({
+      ...prev,
+      [e.id]: { name: e.name, phone: e.phone || "" },
+    }));
 
   const cancelEdit = (id: number) =>
     setEdit((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      return next
-    })
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
 
   const updateEmp = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name?: string; phone?: string | null } }) =>
-      updateEmployee(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { name?: string; phone?: string | null };
+    }) => updateEmployee(id, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['employees'] })
-      qc.invalidateQueries({ queryKey: ['credit'] })
-      setEdit({})
+      qc.invalidateQueries({ queryKey: ["employees"] });
+      qc.invalidateQueries({ queryKey: ["credit"] });
+      setEdit({});
     },
-  })
+  });
 
   const delEmp = useMutation({
     mutationFn: (id: number) => deleteEmployee(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['employees'] })
-      qc.invalidateQueries({ queryKey: ['credit'] })
+      qc.invalidateQueries({ queryKey: ["employees"] });
+      qc.invalidateQueries({ queryKey: ["credit"] });
     },
-  })
+    // Gracefully handle FK violations (e.g., existing credittransaction rows)
+    onError: (err: any) => {
+      const detail =
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Failed to delete employee.";
+      const msg = /foreign key|23503|referenced/i.test(detail)
+        ? "Cannot delete employee with credit history (existing transactions)."
+        : detail;
+      alert(msg);
+    },
+  });
 
   const saveEdit = (e: Employee) => {
-    const curr = edit[e.id]
-    if (!curr) return
-    const newName = curr.name.trim()
-    const newPhoneRaw = curr.phone.trim()
-    const payload: { name?: string; phone?: string | null } = {}
+    const curr = edit[e.id];
+    if (!curr) return;
+    const newName = curr.name.trim();
+    const newPhoneRaw = curr.phone.trim();
+    const payload: { name?: string; phone?: string | null } = {};
 
-    if (newName && newName !== e.name) payload.name = newName
-    if (newPhoneRaw !== (e.phone || '')) payload.phone = newPhoneRaw || null
+    if (newName && newName !== e.name) payload.name = newName;
+    if (newPhoneRaw !== (e.phone || "")) payload.phone = newPhoneRaw || null;
 
     // No changes? Just close editor.
     if (Object.keys(payload).length === 0) {
-      cancelEdit(e.id)
-      return
+      cancelEdit(e.id);
+      return;
     }
 
-    updateEmp.mutate({ id: e.id, data: payload })
-  }
+    updateEmp.mutate({ id: e.id, data: payload });
+  };
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Employees</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           List &amp; manage employees. Record credit payments inline.
         </p>
       </div>
 
       {/* Add Employee */}
-      <form onSubmit={submitNew} className="bg-white rounded-2xl shadow p-4 grid gap-3 max-w-lg">
+      <form
+        onSubmit={submitNew}
+        className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 grid gap-3 max-w-lg"
+      >
         <h2 className="font-semibold text-lg">Add Employee</h2>
 
         <label className="text-sm grid gap-1">
@@ -153,7 +182,7 @@ export default function Employees() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded-lg px-3 py-2"
             placeholder="Jane Doe"
           />
         </label>
@@ -163,7 +192,7 @@ export default function Employees() {
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded-lg px-3 py-2"
             placeholder="+264-81-000-0000"
           />
         </label>
@@ -173,7 +202,7 @@ export default function Employees() {
           disabled={!name.trim() || addEmp.isPending}
           className="justify-self-start bg-black text-white rounded-xl px-4 py-2 disabled:opacity-50"
         >
-          {addEmp.isPending ? 'Saving…' : 'Save Employee'}
+          {addEmp.isPending ? "Saving…" : "Save Employee"}
         </button>
       </form>
 
@@ -182,16 +211,22 @@ export default function Employees() {
         <h2 className="font-semibold text-lg">Employee List</h2>
 
         {empLoading && <Loading />}
-        {empError && <div className="text-red-600">Unable to load employees right now.</div>}
+        {empError && (
+          <div className="text-red-600 dark:text-red-400">
+            Unable to load employees right now.
+          </div>
+        )}
 
         {!empLoading && !empError && rows.length === 0 && (
-          <div className="text-gray-600">No employees yet. Add your first employee above.</div>
+          <div className="text-gray-600 dark:text-gray-400">
+            No employees yet. Add your first employee above.
+          </div>
         )}
 
         {!empLoading && !empError && rows.length > 0 && (
-          <div className="overflow-x-auto bg-white rounded-2xl shadow">
+          <div className="overflow-x-auto bg-white dark:bg-zinc-800 rounded-2xl shadow">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-zinc-700">
                 <tr>
                   <th className="text-left px-4 py-2">ID</th>
                   <th className="text-left px-4 py-2">Name</th>
@@ -203,7 +238,7 @@ export default function Employees() {
               </thead>
               <tbody>
                 {rows.map((e) => (
-                  <tr key={e.id} className="border-t">
+                  <tr key={e.id} className="border-t border-gray-200 dark:border-zinc-700">
                     <td className="px-4 py-2">{e.id}</td>
 
                     {/* Name (editable) */}
@@ -212,9 +247,12 @@ export default function Employees() {
                         <input
                           value={edit[e.id].name}
                           onChange={(ev) =>
-                            setEdit((prev) => ({ ...prev, [e.id]: { ...prev[e.id], name: ev.target.value } }))
+                            setEdit((prev) => ({
+                              ...prev,
+                              [e.id]: { ...prev[e.id], name: ev.target.value },
+                            }))
                           }
-                          className="border rounded px-2 py-1 w-48"
+                          className="border rounded bg-gray-50 dark:bg-zinc-700 px-2 py-1 w-48"
                         />
                       ) : (
                         e.name
@@ -227,18 +265,25 @@ export default function Employees() {
                         <input
                           value={edit[e.id].phone}
                           onChange={(ev) =>
-                            setEdit((prev) => ({ ...prev, [e.id]: { ...prev[e.id], phone: ev.target.value } }))
+                            setEdit((prev) => ({
+                              ...prev,
+                              [e.id]: { ...prev[e.id], phone: ev.target.value },
+                            }))
                           }
                           className="border rounded px-2 py-1 w-48"
                           placeholder="+264-81-000-0000"
                         />
                       ) : (
-                        e.phone || '—'
+                        e.phone || "—"
                       )}
                     </td>
 
                     {/* Balance */}
-                    <td className={`px-4 py-2 ${e.balance > 0 ? 'text-red-600' : 'text-green-700'}`}>
+                    <td
+                      className={`px-4 py-2 ${
+                        e.balance > 0 ? "text-red-600 dark:text-red-400" : "text-green-700 dark:text-green-400"
+                      }`}
+                    >
                       {e.balance.toFixed(2)}
                     </td>
 
@@ -249,14 +294,21 @@ export default function Employees() {
                           type="number"
                           min={0.01}
                           step="0.01"
-                          className="border rounded p-2 w-28"
+                          className="border bg-gray-50 dark:bg-zinc-700 rounded p-2 w-28"
                           value={pay[e.id] ?? 0}
-                          onChange={(ev) => setAmount(e.id, Number(ev.target.value))}
+                          onChange={(ev) =>
+                            setAmount(e.id, Number(ev.target.value))
+                          }
                         />
                         <button
                           className="bg-black text-white rounded-lg px-3 py-2 disabled:opacity-50"
                           disabled={!(pay[e.id] > 0) || recordPay.isPending}
-                          onClick={() => recordPay.mutate({ id: e.id, amount: Number(pay[e.id]) })}
+                          onClick={() =>
+                            recordPay.mutate({
+                              id: e.id,
+                              amount: Number(pay[e.id]),
+                            })
+                          }
                         >
                           Pay
                         </button>
@@ -272,10 +324,10 @@ export default function Employees() {
                             disabled={updateEmp.isPending}
                             onClick={() => saveEdit(e)}
                           >
-                            {updateEmp.isPending ? 'Saving…' : 'Save'}
+                            {updateEmp.isPending ? "Saving…" : "Save"}
                           </button>
                           <button
-                            className="border rounded-lg px-3 py-1"
+                            className="border dark:border-zinc-600 rounded-lg px-3 py-1"
                             onClick={() => cancelEdit(e.id)}
                           >
                             Cancel
@@ -284,21 +336,51 @@ export default function Employees() {
                       ) : (
                         <div className="flex items-center gap-2">
                           <button
-                            className="border rounded-lg px-3 py-1"
+                            className="border dark:border-zinc-600 rounded-lg px-3 py-1"
                             onClick={() => startEdit(e)}
                           >
                             Edit
                           </button>
                           <button
-                            className="text-white bg-red-600 rounded-lg px-3 py-1 disabled:opacity-50"
-                            disabled={delEmp.isPending}
+                            className="text-white bg-red-600 dark:bg-red-700 rounded-lg px-3 py-1 disabled:opacity-50"
+                            disabled={
+                              delEmp.isPending || e.balance > 0 || e.hasHistory
+                            }
+                            title={
+                              e.balance > 0
+                                ? "Settle outstanding credit before deleting"
+                                : e.hasHistory
+                                ? "Cannot delete employee with credit transaction history"
+                                : undefined
+                            }
                             onClick={() => {
-                              if (confirm(`Delete ${e.name}? This cannot be undone.`)) {
-                                delEmp.mutate(e.id)
+                              if (e.balance > 0) {
+                                alert(
+                                  `Cannot delete ${
+                                    e.name
+                                  }. Outstanding credit: N$${e.balance.toFixed(
+                                    2
+                                  )}.`
+                                );
+                                return;
+                              }
+                              if (e.hasHistory) {
+                                alert(
+                                  "Cannot delete: employee has transaction history."
+                                );
+                                return;
+                              }
+
+                              if (
+                                confirm(
+                                  `Delete ${e.name}? This cannot be undone.`
+                                )
+                              ) {
+                                delEmp.mutate(e.id);
                               }
                             }}
                           >
-                            {delEmp.isPending ? 'Deleting…' : 'Delete'}
+                            {delEmp.isPending ? "Deleting…" : "Delete"}
                           </button>
                         </div>
                       )}
@@ -311,5 +393,5 @@ export default function Employees() {
         )}
       </section>
     </div>
-  )
+  );
 }

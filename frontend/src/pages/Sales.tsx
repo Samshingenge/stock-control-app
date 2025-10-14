@@ -55,11 +55,11 @@ export default function Sales() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Sales</h1>
 
-      <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 space-y-3">
         <div className="flex flex-wrap gap-4 items-end">
           <label className="text-sm">
             Payment
-            <select className="border rounded p-2 ml-2" value={payment} onChange={(e) => setPayment(e.target.value as any)}>
+            <select className="border bg-gray-50 dark:bg-zinc-700 rounded p-2 ml-2" value={payment} onChange={(e) => setPayment(e.target.value as any)}>
               <option value="cash">Cash</option>
               <option value="credit">Credit</option>
             </select>
@@ -69,7 +69,7 @@ export default function Sales() {
             <label className="text-sm">
               Employee
               <select
-                className="border rounded p-2 ml-2"
+                className="border rounded bg-gray-50 dark:bg-zinc-700 p-2 ml-2"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value ? Number(e.target.value) : '')}
               >
@@ -88,7 +88,7 @@ export default function Sales() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-zinc-700">
               <tr>
                 <th className="text-left px-3 py-2">Product</th>
                 <th className="text-left px-3 py-2">Qty</th>
@@ -101,10 +101,10 @@ export default function Sales() {
               {lines.map((l, idx) => {
                 const subtotal = (Number(l.qty) || 0) * (Number(l.unit_price) || 0)
                 return (
-                  <tr key={idx} className="border-t">
+                  <tr key={idx} className="border-t border-gray-200 dark:border-zinc-700">
                     <td className="px-3 py-2">
                       <select
-                        className="border rounded p-2"
+                        className="border bg-gray-50 dark:bg-zinc-700 rounded p-2"
                         value={l.product_id}
                         onChange={(e) => setProduct(idx, e.target.value ? Number(e.target.value) : '')}
                       >
@@ -121,7 +121,7 @@ export default function Sales() {
                         type="number"
                         min={0}
                         step="0.01"
-                        className="w-24 border rounded p-2"
+                        className="w-24 border bg-gray-50 dark:bg-zinc-700 rounded p-2"
                         value={l.qty}
                         onChange={(e) => onChangeLine(idx, { qty: Number(e.target.value) })}
                       />
@@ -131,14 +131,14 @@ export default function Sales() {
                         type="number"
                         min={0}
                         step="0.01"
-                        className="w-28 border rounded p-2"
+                        className="w-28 border bg-gray-50 dark:bg-zinc-700 rounded p-2"
                         value={l.unit_price}
                         onChange={(e) => onChangeLine(idx, { unit_price: Number(e.target.value) })}
                       />
                     </td>
                     <td className="px-3 py-2">{subtotal.toFixed(2)}</td>
                     <td className="px-3 py-2">
-                      <button className="text-red-600" onClick={() => removeRow(idx)}>
+                      <button className="text-red-600 dark:text-red-400" onClick={() => removeRow(idx)}>
                         Remove
                       </button>
                     </td>
@@ -150,7 +150,7 @@ export default function Sales() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={addRow} className="rounded-xl px-4 py-2 bg-gray-200">
+          <button onClick={addRow} className="rounded-xl px-4 py-2 bg-gray-200 dark:bg-zinc-700">
             + Add Line
           </button>
           <button

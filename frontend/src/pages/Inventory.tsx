@@ -176,7 +176,7 @@ export default function Inventory(): JSX.Element {
   // -----------------------------
   return (
     <div className="p-6 space-y-6">
-      <section className="bg-white rounded-2xl shadow p-4 md:p-6">
+      <section className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 md:p-6">
         <h2 className="text-xl font-semibold mb-4">Add Product</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
@@ -244,7 +244,7 @@ export default function Inventory(): JSX.Element {
       </section>
 
       {editing && (
-        <section className="bg-white rounded-2xl shadow p-4 md:p-6">
+        <section className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">
               Edit Product — {editing.name}
@@ -338,7 +338,7 @@ export default function Inventory(): JSX.Element {
         </section>
       )}
 
-      <section className="bg-white rounded-2xl shadow">
+      <section className="bg-white dark:bg-zinc-800 rounded-2xl shadow">
         <div className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Products</h2>
@@ -363,7 +363,7 @@ export default function Inventory(): JSX.Element {
           {!isLoading && !isError && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-zinc-700">
                   <tr>
                     <Th>Name</Th>
                     <Th>SKU</Th>
@@ -377,7 +377,7 @@ export default function Inventory(): JSX.Element {
                 </thead>
                 <tbody>
                   {visibleProducts.map((p) => (
-                    <tr key={p.id} className="border-t">
+                    <tr key={p.id} className="border-t border-gray-200 dark:border-zinc-700">
                       <Td>{p.name}</Td>
                       <Td>{p.sku}</Td>
                       <Td>{p.unit}</Td>
@@ -391,13 +391,13 @@ export default function Inventory(): JSX.Element {
                         <div className="flex gap-2">
                           <button
                             onClick={() => startEdit(p)}
-                            className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                            className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => confirmDelete(p)}
-                            className="px-3 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50"
+                            className="px-3 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 disabled:opacity-50"
                             disabled={delMut.isPending}
                           >
                             Delete
@@ -432,9 +432,9 @@ function Input({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
       <input
-        className="border rounded-xl px-3 py-2 outline-none focus:ring-2 ring-black/10"
+        className="border dark:border-zinc-600 rounded-xl px-3 py-2 outline-none focus:ring-2 ring-black/10 dark:ring-zinc-500 bg-white dark:bg-zinc-700 text-black dark:text-white"
         value={value as any}
         onChange={(e) => onChange(e.target.value)}
         type={type}

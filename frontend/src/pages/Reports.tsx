@@ -120,7 +120,7 @@ export default function Reports() {
   if (loadingProducts || loadingPurchases || loadingCredits) return <Loading />
   if (errProducts || errPurchases || errCredits)
     return (
-      <div className="p-4 text-red-600">
+      <div className="p-4 text-red-600 dark:text-red-400">
         Failed to load reports data.
       </div>
     )
@@ -133,20 +133,20 @@ export default function Reports() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="text-gray-500 text-sm">Total Products</div>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4">
+          <div className="text-gray-500 dark:text-gray-400 text-sm">Total Products</div>
           <div className="text-2xl font-semibold">{totals.totalProducts}</div>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="text-gray-500 text-sm">Low Stock Items</div>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4">
+          <div className="text-gray-500 dark:text-gray-400 text-sm">Low Stock Items</div>
           <div className="text-2xl font-semibold">{totals.lowStockCount}</div>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="text-gray-500 text-sm">Stock Value</div>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4">
+          <div className="text-gray-500 dark:text-gray-400 text-sm">Stock Value</div>
           <div className="text-2xl font-semibold">{fmtNumber(totals.totalStockValue)}</div>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="text-gray-500 text-sm">Outstanding Credit</div>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4">
+          <div className="text-gray-500 dark:text-gray-400 text-sm">Outstanding Credit</div>
           <div className="text-2xl font-semibold">{fmtNumber(totals.outstandingCredit)}</div>
         </div>
       </div>
@@ -156,25 +156,25 @@ export default function Reports() {
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-xl font-semibold">Purchases</h2>
-            <p className="text-sm text-gray-500">Filter by date range and export to CSV.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Filter by date range and export to CSV.</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">
+            <label className="text-sm text-gray-600 dark:text-gray-300">
               From
               <input
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="block mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="block mt-1 rounded border border-gray-300 dark:border-zinc-600 px-2 py-1 text-sm bg-white dark:bg-zinc-700"
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="text-sm text-gray-600 dark:text-gray-300">
               To
               <input
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="block mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="block mt-1 rounded border border-gray-300 dark:border-zinc-600 px-2 py-1 text-sm bg-white dark:bg-zinc-700"
               />
             </label>
             <button

@@ -47,14 +47,14 @@ export default function Suppliers() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Suppliers</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           View existing suppliers and add new partners as needed.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow p-4 grid gap-3 max-w-lg"
+        className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 grid gap-3 max-w-lg"
       >
         <h2 className="font-semibold text-lg">Add Supplier</h2>
         <label className="text-sm grid gap-1">
@@ -62,7 +62,7 @@ export default function Suppliers() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded-lg px-3 py-2"
             placeholder="ABC Wholesale"
           />
         </label>
@@ -71,7 +71,7 @@ export default function Suppliers() {
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full border rounded-lg bg-gray-50 dark:bg-zinc-700 px-3 py-2"
             placeholder="+264-61-123-456"
           />
         </label>
@@ -88,10 +88,10 @@ export default function Suppliers() {
         <h2 className="font-semibold text-lg">Supplier List</h2>
         {isLoading && <Loading />}
         {isError && (
-          <div className="text-red-600">Unable to load suppliers right now.</div>
+          <div className="text-red-600 dark:text-red-400">Unable to load suppliers right now.</div>
         )}
         {!isLoading && !isError && rows.length === 0 && (
-          <div className="text-gray-600">
+          <div className="text-gray-600 dark:text-gray-400">
             No suppliers yet. Add your first supplier above.
           </div>
         )}

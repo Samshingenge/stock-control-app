@@ -66,12 +66,12 @@ export default function Credit() {
         ]}
       />
       {debtors.length === 0 && (
-        <div className="text-sm text-gray-500 italic">
+        <div className="text-sm text-gray-500 dark:text-gray-400 italic">
           No active debts — all cleared 🎉
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow p-4 grid gap-2 max-w-md">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 grid gap-2 max-w-md">
         <div className="font-semibold">Record Payment</div>
 
         <label className="text-sm">
@@ -82,7 +82,7 @@ export default function Credit() {
             step={1}
             value={employeeId}
             onChange={(e) => setEmployeeId(Number(e.target.value))}
-            className="w-full border rounded p-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded p-2"
             placeholder="e.g. 4"
           />
         </label>
@@ -96,7 +96,7 @@ export default function Credit() {
             max={outstandingForSelected > 0 ? outstandingForSelected : undefined}
             value={Number.isFinite(amount) ? amount : ''}
             onChange={(e) => setAmount(Number(e.target.value))}
-            className="w-full border rounded p-2"
+            className="w-full border bg-gray-50 dark:bg-zinc-700 rounded p-2"
             placeholder={
               outstandingForSelected > 0
                 ? `<= ${outstandingForSelected.toFixed(2)}`
@@ -114,7 +114,7 @@ export default function Credit() {
         </button>
 
         {outstandingForSelected > 0 && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             Outstanding for employee {employeeId}: N${' '}
             {outstandingForSelected.toFixed(2)}
           </div>

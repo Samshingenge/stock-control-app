@@ -122,11 +122,11 @@ export default function Dashboard() {
               },
             ]}
           />
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Total low items: <span className="font-medium">{lowCount}</span>
           </div>
           {lowSorted.length === 0 && (
-            <div className="text-sm text-gray-500 italic mt-1">
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic mt-1">
               All items healthy 🎉
             </div>
           )}
@@ -151,12 +151,12 @@ export default function Dashboard() {
               },
             ]}
           />
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Total outstanding (all {allDebtors.length} debtors):{' '}
             <span className="font-medium">{`N$ ${totalOutstandingAll.toFixed(2)}`}</span>
           </div>
           {allDebtors.length === 0 && (
-            <div className="text-sm text-gray-500 italic mt-1">
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic mt-1">
               No active debts — all cleared 🎉
             </div>
           )}
