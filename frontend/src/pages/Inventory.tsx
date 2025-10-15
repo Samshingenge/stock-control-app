@@ -229,9 +229,7 @@ export default function Inventory(): JSX.Element {
             type="number"
             value={String(newProd.reorder_level ?? '')}
             onChange={(v) => setNewProd((s) => ({ ...s, reorder_level: Number(v) }))}
-            
           />
-
           <div className="md:col-span-3 flex gap-3">
             <button
               type="submit"
@@ -243,7 +241,6 @@ export default function Inventory(): JSX.Element {
           </div>
         </form>
       </section>
-
       {editing && (
         <section className="bg-white dark:bg-zinc-800 rounded-2xl shadow p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
@@ -257,7 +254,6 @@ export default function Inventory(): JSX.Element {
               Cancel
             </button>
           </div>
-
           <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               label="Name"
@@ -354,7 +350,7 @@ export default function Inventory(): JSX.Element {
             </label>
           </div>
 
-          {isLoading && <div className='dark:text-gray-300 '>Loading…</div>}
+          {isLoading && <div className='dark:text-gray-300'>Loading…</div>}
           {isError && (
             <div className="dark:text-red-400">
               Failed to load products: {String((error as any)?.message || '')}
@@ -384,7 +380,7 @@ export default function Inventory(): JSX.Element {
                       <Td>{p.unit}</Td>
                       <Td className="text-right">{p.price.toFixed(2)}</Td>
                       <Td className="text-right">{p.cost_price.toFixed(2)}</Td>
-                      <Td className={`text-right ${lowStockIds.has(p.id) ? 'text-orange-400 font-medium' : ''}`}>
+                      <Td className={`text-right ${lowStockIds.has(p.id) ? 'text-orange-600 font-medium' : ''}`}>
                         {p.stock_qty}
                       </Td>
                       <Td className="text-right">{p.reorder_level}</Td>
