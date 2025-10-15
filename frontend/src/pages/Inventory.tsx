@@ -229,12 +229,13 @@ export default function Inventory(): JSX.Element {
             type="number"
             value={String(newProd.reorder_level ?? '')}
             onChange={(v) => setNewProd((s) => ({ ...s, reorder_level: Number(v) }))}
+            
           />
 
           <div className="md:col-span-3 flex gap-3">
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black disabled:opacity-50"
               disabled={createMut.isPending}
             >
               {createMut.isPending ? 'Saving…' : 'Save Product'}
@@ -251,7 +252,7 @@ export default function Inventory(): JSX.Element {
             </h2>
             <button
               onClick={cancelEdit}
-              className="text-sm text-gray-500 hover:underline"
+              className="text-sm dark:text-gray-400 dark:hover:text-gray-300 hover:underline"
             >
               Cancel
             </button>
@@ -329,7 +330,7 @@ export default function Inventory(): JSX.Element {
               <button
                 type="button"
                 onClick={cancelEdit}
-                className="px-4 py-2 rounded-xl bg-gray-100"
+                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-zinc-700 dark:hover:bg-zinc-600"
               >
                 Cancel
               </button>
@@ -349,13 +350,13 @@ export default function Inventory(): JSX.Element {
                 onChange={(e) => setShowLowOnly(e.target.checked)}
                 className="accent-black"
               />
-              <span>Show only low stock</span>
+              <span className='dark:text-gray-300'>Show only low stock</span>
             </label>
           </div>
 
-          {isLoading && <div>Loading…</div>}
+          {isLoading && <div className='dark:text-gray-300 '>Loading…</div>}
           {isError && (
-            <div className="text-red-600">
+            <div className="dark:text-red-400">
               Failed to load products: {String((error as any)?.message || '')}
             </div>
           )}
@@ -383,7 +384,7 @@ export default function Inventory(): JSX.Element {
                       <Td>{p.unit}</Td>
                       <Td className="text-right">{p.price.toFixed(2)}</Td>
                       <Td className="text-right">{p.cost_price.toFixed(2)}</Td>
-                      <Td className={`text-right ${lowStockIds.has(p.id) ? 'text-orange-600 font-medium' : ''}`}>
+                      <Td className={`text-right ${lowStockIds.has(p.id) ? 'text-orange-400 font-medium' : ''}`}>
                         {p.stock_qty}
                       </Td>
                       <Td className="text-right">{p.reorder_level}</Td>

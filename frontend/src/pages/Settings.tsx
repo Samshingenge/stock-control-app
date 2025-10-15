@@ -105,9 +105,11 @@ export default function Settings() {
     try {
       const text = await file.text()
       const json = JSON.parse(text)
-      setSettings((prev) => ({
-        ...prev,
-        ...json,
+     setSettings((prev) => ({
+        storeName: typeof json.storeName === 'string' ? json.storeName : prev.storeName,
+        currencySymbol: typeof json.currencySymbol === 'string' 
+          ? json.currencySymbol.slice(0, 4) 
+          : prev.currencySymbol,
         decimalPlaces: clampDecimals(Number(json.decimalPlaces ?? prev.decimalPlaces)),
         theme: normalizeTheme(json.theme),
         confirmDeletes: Boolean(json.confirmDeletes ?? prev.confirmDeletes),
@@ -199,7 +201,7 @@ export default function Settings() {
             onChange={(e) =>
               setSettings({
                 ...settings,
-                theme: e.target.value as AppSettings['theme'],
+                theme: normalizeTheme(e.target.value),
               })
             }
             className="w-full border rounded-lg bg-gray-50 dark:bg-zinc-700 px-3 py-2"

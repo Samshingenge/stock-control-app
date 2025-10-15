@@ -354,23 +354,6 @@ export default function Employees() {
                                 : undefined
                             }
                             onClick={() => {
-                              if (e.balance > 0) {
-                                alert(
-                                  `Cannot delete ${
-                                    e.name
-                                  }. Outstanding credit: N$${e.balance.toFixed(
-                                    2
-                                  )}.`
-                                );
-                                return;
-                              }
-                              if (e.hasHistory) {
-                                alert(
-                                  "Cannot delete: employee has transaction history."
-                                );
-                                return;
-                              }
-
                               if (
                                 confirm(
                                   `Delete ${e.name}? This cannot be undone.`
