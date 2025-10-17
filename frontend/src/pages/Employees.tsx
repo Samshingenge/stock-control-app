@@ -1,17 +1,13 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getEmployees,
-  createEmployee,
-  getCreditSummary,
-  addCreditPayment,
-  updateEmployee,
-  deleteEmployee,
-} from "../lib/api";
+   getEmployees,
+   createEmployee,
+   updateEmployee,
+   deleteEmployee,
+ } from "../lib/api";
 import type { Employee } from "../lib/types";
 import Loading from "../components/Loading";
-
-type Row = Employee & { balance: number; hasHistory: boolean };
 
 export default function Employees() {
   const qc = useQueryClient();
@@ -23,35 +19,7 @@ export default function Employees() {
     isError: empError,
   } = useQuery<Employee[]>({ queryKey: ["employees"], queryFn: getEmployees });
 
-  const { data: credit } = useQuery<
-    { employee_id: number; employee_name: string; balance: number }[]
-  >({
-    queryKey: ["credit"],
-    queryFn: getCreditSummary,
-  });
-
-  // Balance lookup
-  const balanceById = useMemo(() => {
-    const m = new Map<number, number>();
-    (credit || []).forEach((c) => m.set(c.employee_id, c.balance));
-    return m;
-  }, [credit]);
-
-  const hasHistoryId = useMemo(() => {
-    const s = new Set<number>();
-    (credit || []).forEach((c) => s.add(c.employee_id));
-    return s;
-  }, [credit]);
-
-  const rows: Row[] = useMemo(
-    () =>
-      (employees || []).map((e) => ({
-        ...e,
-        balance: balanceById.get(e.id) ?? 0,
-        hasHistory: hasHistoryId.has(e.id),
-      })),
-    [employees, balanceById, hasHistoryId]
-  );
+  const rows: Employee[] = useMemo(() => employees || [], [employees]);
 
   // New employee form
   const [name, setName] = useState("");
@@ -76,19 +44,7 @@ export default function Employees() {
     addEmp.mutate();
   };
 
-  // Inline payments
-  const [pay, setPay] = useState<Record<number, number>>({});
-
-  const recordPay = useMutation({
-    mutationFn: ({ id, amount }: { id: number; amount: number }) =>
-      addCreditPayment(id, amount),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["credit"] });
-    },
-  });
-
-  const setAmount = (id: number, val: number) =>
-    setPay((prev) => ({ ...prev, [id]: val }));
+  // Payment functionality removed - use Credit page instead
 
   // Inline edit state
   const [edit, setEdit] = useState<
@@ -118,7 +74,6 @@ export default function Employees() {
     }) => updateEmployee(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["employees"] });
-      qc.invalidateQueries({ queryKey: ["credit"] });
       setEdit({});
     },
   });
@@ -127,7 +82,6 @@ export default function Employees() {
     mutationFn: (id: number) => deleteEmployee(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["employees"] });
-      qc.invalidateQueries({ queryKey: ["credit"] });
     },
     // Gracefully handle FK violations (e.g., existing credittransaction rows)
     onError: (err: any) => {
@@ -231,8 +185,6 @@ export default function Employees() {
                   <th className="text-left px-4 py-2">ID</th>
                   <th className="text-left px-4 py-2">Name</th>
                   <th className="text-left px-4 py-2">Phone</th>
-                  <th className="text-left px-4 py-2">Credit Balance (N$)</th>
-                  <th className="text-left px-4 py-2">Record Payment</th>
                   <th className="text-left px-4 py-2">Actions</th>
                 </tr>
               </thead>
@@ -278,43 +230,6 @@ export default function Employees() {
                       )}
                     </td>
 
-                    {/* Balance */}
-                    <td
-                      className={`px-4 py-2 ${
-                        e.balance > 0 ? "text-red-600 dark:text-red-400" : "text-green-700 dark:text-green-400"
-                      }`}
-                    >
-                      {e.balance.toFixed(2)}
-                    </td>
-
-                    {/* Record payment */}
-                    <td className="px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={0.01}
-                          step="0.01"
-                          className="border bg-gray-50 dark:bg-zinc-700 rounded p-2 w-28"
-                          value={pay[e.id] ?? 0}
-                          onChange={(ev) =>
-                            setAmount(e.id, Number(ev.target.value))
-                          }
-                        />
-                        <button
-                          className="bg-black text-white rounded-lg px-3 py-2 disabled:opacity-50"
-                          disabled={!(pay[e.id] > 0) || recordPay.isPending}
-                          onClick={() =>
-                            recordPay.mutate({
-                              id: e.id,
-                              amount: Number(pay[e.id]),
-                            })
-                          }
-                        >
-                          Pay
-                        </button>
-                      </div>
-                    </td>
-
                     {/* Actions */}
                     <td className="px-4 py-2">
                       {edit[e.id] ? (
@@ -343,16 +258,7 @@ export default function Employees() {
                           </button>
                           <button
                             className="text-white bg-red-600 dark:bg-red-700 rounded-lg px-3 py-1 disabled:opacity-50"
-                            disabled={
-                              delEmp.isPending || e.balance > 0 || e.hasHistory
-                            }
-                            title={
-                              e.balance > 0
-                                ? "Settle outstanding credit before deleting"
-                                : e.hasHistory
-                                ? "Cannot delete employee with credit transaction history"
-                                : undefined
-                            }
+                            disabled={delEmp.isPending}
                             onClick={() => {
                               if (
                                 confirm(

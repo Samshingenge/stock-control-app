@@ -11,13 +11,6 @@ import {
 } from '../lib/api'
 import type { Product, Purchase, Supplier } from '../lib/types'
 
-type PurchaseRow = {
-  id: number
-  supplier_name: string
-  item_count: number
-  total_display: string
-  created_at_display: string
-}
 
 export default function Purchases() {
   const queryClient = useQueryClient()
@@ -81,15 +74,8 @@ export default function Purchases() {
     })
   }
 
-  const rows: PurchaseRow[] = useMemo(
-    () =>
-      purchases?.map((p) => ({
-        id: p.id,
-        supplier_name: p.supplier_name,
-        item_count: p.item_count,
-        total_display: `N$ ${p.total.toFixed(2)}`,
-        created_at_display: new Date(p.created_at).toLocaleString(),
-      })) ?? [],
+  const rows: Purchase[] = useMemo(
+    () => purchases ?? [],
     [purchases],
   )
 
@@ -202,14 +188,38 @@ export default function Purchases() {
           </div>
         )}
         {!purchasesLoading && !purchasesError && rows.length > 0 && (
-          <DataTable
+          <DataTable<Purchase>
             rows={rows}
             columns={[
               { key: 'id', header: 'ID' },
               { key: 'supplier_name', header: 'Supplier' },
-              { key: 'item_count', header: 'Items' },
-              { key: 'total_display', header: 'Total' },
-              { key: 'created_at_display', header: 'Date' },
+              {
+                header: 'Qty/Products',
+                render: (r: Purchase) => (
+                  <div className="space-y-1">
+                    {r.products && r.products.length > 0 ? (
+                      r.products.map((product, idx) => (
+                        <div key={idx} className="text-sm">
+                          <span className="font-medium">{product.qty} × {product.name}</span>
+                          <span className="text-gray-500 ml-2">
+                            (N${product.unit_cost.toFixed(2)})
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-sm">No products</span>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                header: 'Total',
+                render: (r: Purchase) => `N$ ${r.total.toFixed(2)}`,
+              },
+              {
+                header: 'Date',
+                render: (r: Purchase) => new Date(r.created_at).toLocaleString(),
+              },
             ]}
           />
         )}

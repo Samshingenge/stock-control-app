@@ -2,7 +2,7 @@ from typing import List
 
 from sqlmodel import Session, select
 
-from ..models import CreditTransaction, CreditType, Employee, Sale
+from ..models import CreditTransaction, CreditType, Employee, Sale, SaleItem, Product
 from ..utils import ensure
 
 
@@ -62,8 +62,66 @@ def credit_summary(db: Session) -> List[dict]:
     for e in employees:
         bal = balance_for_employee(db, e.id)  # type: ignore[arg-type]
         if bal != 0:
-            out.append(
-                {"employee_id": e.id, "employee_name": e.name, "balance": bal}
-            )
+            # Get products purchased on credit by this employee
+            products = []
+
+            # First, let's get all credit charges for this employee
+            credit_charges = db.exec(
+                select(CreditTransaction).where(
+                    CreditTransaction.employee_id == e.id,
+                    CreditTransaction.type == CreditType.charge
+                )
+            ).all()
+
+            for charge in credit_charges:
+                if charge.sale_id:
+                    # Join SaleItem with Product and Sale to get product details and purchase date
+                    stmt = select(SaleItem, Product, Sale).where(
+                        SaleItem.sale_id == charge.sale_id,
+                        SaleItem.product_id == Product.id,
+                        SaleItem.sale_id == Sale.id
+                    )
+                    results = db.exec(stmt).all()
+                    for item, product, sale in results:
+                        products.append({
+                            "id": product.id,
+                            "name": product.name,
+                            "qty": item.qty,
+                            "unit_price": item.unit_price,
+                            "subtotal": item.subtotal,
+                            "purchase_date": sale.created_at.isoformat()
+                        })
+                else:
+                    # If no sale_id, this might be a manual credit charge
+                    # Let's try to find sales for this employee that might not be linked
+                    employee_sales = db.exec(
+                        select(Sale).where(Sale.employee_id == e.id)
+                    ).all()
+
+                    for sale in employee_sales:
+                        if sale.total > 0:  # This might be a credit sale
+                            sale_items = db.exec(
+                                select(SaleItem, Product, Sale).where(
+                                    SaleItem.sale_id == sale.id,
+                                    SaleItem.product_id == Product.id,
+                                    SaleItem.sale_id == Sale.id
+                                )
+                            ).all()
+                            for item, product, sale_info in sale_items:
+                                products.append({
+                                    "id": product.id,
+                                    "name": product.name,
+                                    "qty": item.qty,
+                                    "unit_price": item.unit_price,
+                                    "subtotal": item.subtotal,
+                                    "purchase_date": sale_info.created_at.isoformat()
+                                })
+
+            out.append({
+                "employee_id": e.id,
+                "employee_name": e.name,
+                "balance": bal,
+                "products": products
+            })
     out.sort(key=lambda x: -x["balance"])
     return out

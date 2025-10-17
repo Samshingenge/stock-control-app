@@ -23,6 +23,10 @@ export default function Credit() {
     [data],
   )
 
+  // Debug logging to check if data is received
+  console.log('Credit data received:', data)
+  console.log('Debtors with products:', debtors.map(d => ({ name: d.employee_name, products: d.products })))
+
   // Form state
   const [employeeId, setEmployeeId] = useState<number>(debtors[0]?.employee_id ?? 1)
   const [amount, setAmount] = useState<number>(10)
@@ -53,6 +57,28 @@ export default function Credit() {
         columns={[
           { key: 'employee_id', header: 'Emp ID' },
           { key: 'employee_name', header: 'Name' },
+          {
+            header: 'Products',
+            render: (r: CreditSummary) => (
+              <div className="space-y-2">
+                {r.products && r.products.length > 0 ? (
+                  r.products.map((product, idx) => (
+                    <div key={`${product.id}-${idx}`} className="text-sm border-b border-gray-100 pb-1 last:border-b-0">
+                      <div className="font-medium">{product.name}</div>
+                      <div className="text-gray-500 text-xs">
+                        {product.qty} × N${product.unit_price.toFixed(2)} = N${product.subtotal.toFixed(2)}
+                      </div>
+                      <div className="text-gray-400 text-xs">
+                        Purchased: {new Date(product.purchase_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm">No products found</span>
+                )}
+              </div>
+            ),
+          },
           {
             header: 'Balance (N$)',
             headerClassName: 'text-right',

@@ -91,6 +91,13 @@ class PurchaseOut(BaseModel):
         from_attributes = True
 
 
+class PurchaseProduct(BaseModel):
+    name: str
+    qty: float
+    unit_cost: float
+    subtotal: float
+
+
 class PurchaseListOut(BaseModel):
     id: int
     supplier_id: int
@@ -98,6 +105,7 @@ class PurchaseListOut(BaseModel):
     total: float
     created_at: datetime
     item_count: int
+    products: List[PurchaseProduct]
 
 
 class SaleItemIn(BaseModel):
@@ -135,10 +143,20 @@ class CreditTxnOut(BaseModel):
         from_attributes = True
 
 
+class CreditProduct(BaseModel):
+    id: int
+    name: str
+    qty: float
+    unit_price: float
+    subtotal: float
+    purchase_date: str
+
+
 class CreditSummary(BaseModel):
     employee_id: int
     employee_name: str
     balance: float
+    products: List[CreditProduct]
 
 
 class DashboardSummary(BaseModel):
