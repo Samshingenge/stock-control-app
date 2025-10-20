@@ -101,16 +101,27 @@ def cancel_purchase(db: Session, purchase_id: int) -> bool:
         return False
     items = db.exec(select(PurchaseItem).where(PurchaseItem.purchase_id == purchase_id)).all()
 
-    # make sure rolling back won't send stock negative
+    # Get all unique product IDs that need to be locked
+    product_ids = list({it.product_id for it in items})
+
+    # Fetch all products with row-level locks in a single query
+    locked_products = db.exec(
+        select(Product).where(Product.id.in_(product_ids)).with_for_update()
+    ).all()
+
+    # Create a mapping for quick access by product_id
+    product_map = {prod.id: prod for prod in locked_products}
+
+    # make sure rolling back won't send stock negative (using locked products)
     for it in items:
-        prod = db.get(Product, it.product_id)
+        prod = product_map.get(it.product_id)
         ensure(prod is not None, "Product missing")
         ensure((prod.stock_qty or 0) - it.qty >= 0,
-               f"Cannot cancel: {prod.name} stock would go negative")
+                f"Cannot cancel: {prod.name} stock would go negative")
 
-    # apply rollback
+    # apply rollback (using the same locked products)
     for it in items:
-        prod = db.get(Product, it.product_id)
+        prod = product_map[it.product_id]
         prod.stock_qty -= it.qty
         db.add(prod)
         db.delete(it)
@@ -138,24 +149,35 @@ def update_purchase(db: Session, purchase_id: int, supplier_id: int | None,
         for it in items:
             desired[int(it["product_id"])]["qty"] += float(it["qty"])
 
-        # adjust stock by delta (desired - current)
+        # Get all unique product IDs that need to be locked
+        product_ids = list(set(current.keys()) | set(desired.keys()))
+
+        # Fetch all products with row-level locks in a single query
+        locked_products = db.exec(
+            select(Product).where(Product.id.in_(product_ids)).with_for_update()
+        ).all()
+
+        # Create a mapping for quick access by product_id
+        product_map = {prod.id: prod for prod in locked_products}
+
+        # adjust stock by delta (desired - current) using locked products
         for pid in set(current.keys()) | set(desired.keys()):
             old = current[pid]["qty"]
             new = desired[pid]["qty"]
             delta = new - old
-            prod = db.get(Product, pid)
+            prod = product_map.get(pid)
             ensure(prod is not None, "Product missing")
             ensure((prod.stock_qty or 0) + delta >= 0,
-                   f"Adjusting purchase would send {prod.name} stock negative")
+                    f"Adjusting purchase would send {prod.name} stock negative")
             prod.stock_qty += delta
             db.add(prod)
 
-        # replace items
+        # replace items using the same locked products
         for it in cur_items:
             db.delete(it)
         total = 0.0
         for it in items:
-            prod = db.get(Product, int(it["product_id"]))
+            prod = product_map[int(it["product_id"])]
             qty = float(it["qty"]); unit_cost = float(it["unit_cost"])
             subtotal = qty * unit_cost
             db.add(PurchaseItem(purchase=p, product=prod, qty=qty, unit_cost=unit_cost, subtotal=subtotal))
