@@ -12,11 +12,15 @@ export type Product = {
 export type ProductUpdate = Partial<Omit<Product, 'id'>>
 
 export type DashboardSummary = {
-  total_products: number
-  low_stock_count: number
-  total_stock_value: number
-  outstanding_credit: number
-}
+   total_products: number
+   low_stock_count: number
+   total_stock_value: number
+   outstanding_credit: number
+   top_sold_products?: Array<{
+     name: string
+     total_sold: number
+   }>
+ }
 
 export type CreditProduct = {
   id: number

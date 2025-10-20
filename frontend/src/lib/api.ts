@@ -107,6 +107,26 @@ export const createSupplier = (payload: SupplierCreate) =>
 // -------------------------------
 // Purchases
 // -------------------------------
+
+// Detail type (local) to avoid touching shared types
+export type PurchaseDetail = {
+  id: number
+  supplier_id: number
+  supplier_name: string
+  total: number
+  created_at: string
+  items: { product_id: number; product_name: string; qty: number; unit_cost: number; subtotal: number }[]
+}
+
+export const getPurchaseDetail = (id: number) =>
+  api.get<PurchaseDetail>(`/purchases/${id}`).then((r) => r.data)
+
+export const updatePurchase = (id: number, payload: { supplier_id?: number; items?: { product_id: number; qty: number; unit_cost: number }[] }) =>
+  api.patch<{ id: number; total: number }>(`/purchases/${id}`, payload).then((r) => r.data)
+
+export const cancelPurchase = (id: number) =>
+  api.delete<void>(`/purchases/${id}`).then((r) => r.data)
+
 export const getPurchases = () =>
   api.get<Purchase[]>('/purchases/').then((r) => r.data)
 

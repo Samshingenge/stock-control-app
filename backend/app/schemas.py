@@ -164,3 +164,28 @@ class DashboardSummary(BaseModel):
     low_stock_count: int
     total_stock_value: float
     outstanding_credit: float
+
+# --- add below existing purchase schemas ---
+class PurchaseItemOut(BaseModel):
+    product_id: int
+    product_name: str
+    qty: float
+    unit_cost: float
+    subtotal: float
+
+class PurchaseDetailOut(BaseModel):
+    id: int
+    supplier_id: int
+    supplier_name: str
+    total: float
+    created_at: datetime
+    items: list[PurchaseItemOut]
+
+class PurchaseItemUpdateIn(BaseModel):
+    product_id: int
+    qty: float
+    unit_cost: float
+
+class PurchaseUpdate(BaseModel):
+    supplier_id: int | None = None
+    items: list[PurchaseItemUpdateIn] | None = None

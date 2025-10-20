@@ -1,5 +1,5 @@
 from typing import List
-
+from collections import defaultdict
 from sqlmodel import Session, select
 
 from ..models import PaymentMethod, Product, Purchase, PurchaseItem, Sale, SaleItem
@@ -92,3 +92,75 @@ def total_stock_value(db: Session) -> float:
     for p in rows:
         value += (p.cost_price or 0) * (p.stock_qty or 0)
     return round(value, 2)
+
+# Purchases Services – implement cancel and update
+
+def cancel_purchase(db: Session, purchase_id: int) -> bool:
+    p = db.get(Purchase, purchase_id)
+    if not p:
+        return False
+    items = db.exec(select(PurchaseItem).where(PurchaseItem.purchase_id == purchase_id)).all()
+
+    # make sure rolling back won't send stock negative
+    for it in items:
+        prod = db.get(Product, it.product_id)
+        ensure(prod is not None, "Product missing")
+        ensure((prod.stock_qty or 0) - it.qty >= 0,
+               f"Cannot cancel: {prod.name} stock would go negative")
+
+    # apply rollback
+    for it in items:
+        prod = db.get(Product, it.product_id)
+        prod.stock_qty -= it.qty
+        db.add(prod)
+        db.delete(it)
+
+    db.delete(p)
+    db.commit()
+    return True
+
+def update_purchase(db: Session, purchase_id: int, supplier_id: int | None,
+                    items: list[dict] | None) -> Purchase:
+    p = db.get(Purchase, purchase_id)
+    ensure(p is not None, "Purchase not found")
+    if supplier_id is not None:
+        p.supplier_id = supplier_id
+
+    if items is not None:
+        # current totals by product
+        current = defaultdict(lambda: {"qty": 0.0})
+        cur_items = db.exec(select(PurchaseItem).where(PurchaseItem.purchase_id == purchase_id)).all()
+        for it in cur_items:
+            current[it.product_id]["qty"] += float(it.qty)
+
+        # desired totals by product
+        desired = defaultdict(lambda: {"qty": 0.0})
+        for it in items:
+            desired[int(it["product_id"])]["qty"] += float(it["qty"])
+
+        # adjust stock by delta (desired - current)
+        for pid in set(current.keys()) | set(desired.keys()):
+            old = current[pid]["qty"]
+            new = desired[pid]["qty"]
+            delta = new - old
+            prod = db.get(Product, pid)
+            ensure(prod is not None, "Product missing")
+            ensure((prod.stock_qty or 0) + delta >= 0,
+                   f"Adjusting purchase would send {prod.name} stock negative")
+            prod.stock_qty += delta
+            db.add(prod)
+
+        # replace items
+        for it in cur_items:
+            db.delete(it)
+        total = 0.0
+        for it in items:
+            prod = db.get(Product, int(it["product_id"]))
+            qty = float(it["qty"]); unit_cost = float(it["unit_cost"])
+            subtotal = qty * unit_cost
+            db.add(PurchaseItem(purchase=p, product=prod, qty=qty, unit_cost=unit_cost, subtotal=subtotal))
+            total += subtotal
+        p.total = round(total, 2)
+
+    db.add(p); db.commit(); db.refresh(p)
+    return p
