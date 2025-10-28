@@ -1,6 +1,7 @@
 import {
   BarChart2,
   CreditCard,
+  History,
   Home,
   Package,
   Settings as Cog,
@@ -41,6 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <NavItem to="/purchases" icon={Truck} label="Purchases" />
           <NavItem to="/sales" icon={ShoppingCart} label="Sales" />
           <NavItem to="/credit" icon={CreditCard} label="Credit" />
+          <NavItem to="/payment-history" icon={History} label="Payment History" />
           <NavItem to="/employees" icon={Users} label="Employees" />
           <NavItem to="/suppliers" icon={Truck} label="Suppliers" />
           <NavItem to="/reports" icon={BarChart2} label="Reports" />

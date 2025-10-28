@@ -5,6 +5,7 @@ import Credit from './pages/Credit'
 import Dashboard from './pages/Dashboard'
 import Employees from './pages/Employees'
 import Inventory from './pages/Inventory'
+import PaymentHistory from './pages/PaymentHistory'
 import Purchases from './pages/Purchases'
 import Reports from './pages/Reports'
 import Sales from './pages/Sales'
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/purchases" element={<Purchases />} />
         <Route path="/sales" element={<Sales />} />
         <Route path="/credit" element={<Credit />} />
+        <Route path="/payment-history" element={<PaymentHistory />} />
         <Route path="/employees" element={<Employees />} />
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/reports" element={<Reports />} />

@@ -125,3 +125,55 @@ def credit_summary(db: Session) -> List[dict]:
             })
     out.sort(key=lambda x: -x["balance"])
     return out
+
+
+def payment_history(db: Session) -> List[dict]:
+    employees = db.exec(select(Employee)).all()
+    out = []
+    for e in employees:
+        # Get all credit payments for this employee
+        payments = db.exec(
+            select(CreditTransaction).where(
+                CreditTransaction.employee_id == e.id,
+                CreditTransaction.type == CreditType.payment
+            )
+        ).all()
+
+        if payments:
+            total_paid = sum(p.amount for p in payments)
+            # Get products purchased on credit by this employee (same as credit_summary)
+            products = []
+
+            credit_charges = db.exec(
+                select(CreditTransaction).where(
+                    CreditTransaction.employee_id == e.id,
+                    CreditTransaction.type == CreditType.charge
+                )
+            ).all()
+
+            for charge in credit_charges:
+                if charge.sale_id:
+                    stmt = select(SaleItem, Product, Sale).where(
+                        SaleItem.sale_id == charge.sale_id,
+                        SaleItem.product_id == Product.id,
+                        SaleItem.sale_id == Sale.id
+                    )
+                    results = db.exec(stmt).all()
+                    for item, product, sale in results:
+                        products.append({
+                            "id": product.id,
+                            "name": product.name,
+                            "qty": item.qty,
+                            "unit_price": item.unit_price,
+                            "subtotal": item.subtotal,
+                            "purchase_date": sale.created_at.isoformat()
+                        })
+
+            out.append({
+                "employee_id": e.id,
+                "employee_name": e.name,
+                "total_paid": total_paid,
+                "products": products
+            })
+    out.sort(key=lambda x: -x["total_paid"])
+    return out

@@ -38,6 +38,13 @@ export type CreditSummary = {
   products: CreditProduct[]
 }
 
+export type PaymentHistory = {
+  employee_id: number
+  employee_name: string
+  total_paid: number
+  products: CreditProduct[]
+}
+
 export type Supplier = {
   id: number
   name: string

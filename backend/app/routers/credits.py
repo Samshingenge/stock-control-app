@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select, func
 
 from ..deps import get_db
-from ..schemas import CreditPaymentIn, CreditSummary
+from ..schemas import CreditPaymentIn, CreditSummary, PaymentHistory
 from ..models import CreditTransaction, CreditType
 from ..crud import credits as crud  # <- import your credits CRUD helpers
 
@@ -92,3 +92,9 @@ def add_payment(employee_id: int, payload: CreditPaymentIn, db: Session = Depend
         "applied": txn.amount,
         "remaining": round(outstanding - txn.amount, 2),
     }
+
+
+@router.get("/payment-history", response_model=list[PaymentHistory])
+def payment_history_endpoint(db: Session = Depends(get_db)):
+    data = crud.payment_history_crud(db)
+    return [PaymentHistory(**d) for d in data]

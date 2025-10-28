@@ -3,6 +3,7 @@ import type {
   Product,
   DashboardSummary,
   CreditSummary,
+  PaymentHistory,
   Supplier,
   Purchase,
   EmployeeUpdate,
@@ -94,6 +95,9 @@ export const createSaleCredit = (payload: SaleCreate) =>
 
 export const addCreditPayment = (employeeId: number, amount: number) =>
   api.post(`/credits/${employeeId}/payments`, { amount }).then((r) => r.data)
+
+export const getPaymentHistory = () =>
+  api.get<PaymentHistory[]>('/credits/payment-history').then((r) => r.data)
 
 // -------------------------------
 // Suppliers

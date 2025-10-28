@@ -4,6 +4,7 @@ from ..services.credits import (
     balance_for_employee,
     credit_summary,
     record_credit_payment,
+    payment_history,
 )
 
 
@@ -17,3 +18,7 @@ def employee_balance(db: Session, employee_id: int) -> float:
 
 def summary(db: Session):
     return credit_summary(db)
+
+
+def payment_history_crud(db: Session):
+    return payment_history(db)

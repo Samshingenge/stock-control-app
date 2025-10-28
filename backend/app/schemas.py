@@ -159,6 +159,13 @@ class CreditSummary(BaseModel):
     products: List[CreditProduct]
 
 
+class PaymentHistory(BaseModel):
+    employee_id: int
+    employee_name: str
+    total_paid: float
+    products: List[CreditProduct]
+
+
 class DashboardSummary(BaseModel):
     total_products: int
     low_stock_count: int
