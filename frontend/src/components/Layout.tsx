@@ -9,8 +9,12 @@ import {
   Truck,
   Users,
 } from 'lucide-react'
+import { useEffect } from 'react'
 import type { ComponentType } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+
+import { isAuthenticated } from '../lib/auth'
+import TopNav from './TopNav'
 
 const NavItem = ({ to, icon: Icon, label }: {
   to: string;
@@ -31,7 +35,16 @@ const NavItem = ({ to, icon: Icon, label }: {
   )
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (!isAuthenticated() && location.pathname !== '/login') {
+      navigate('/login', { replace: true, state: { from: location.pathname } })
+    }
+  }, [location.pathname, navigate])
+
   return (
     <div className="min-h-screen grid grid-cols-[240px_1fr] bg-white text-black dark:bg-zinc-900 dark:text-white">
       <aside className="p-4 border-r bg-white dark:bg-zinc-800 dark:border-zinc-700">
@@ -49,7 +62,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <NavItem to="/settings" icon={Cog} label="Settings" />
         </nav>
       </aside>
-      <main className="p-6">{children}</main>
+      <main className="flex flex-col gap-6 p-6">
+        <TopNav />
+        <div className="min-h-0">
+          <Outlet />
+        </div>
+      </main>
     </div>
   )
 }
